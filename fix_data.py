@@ -86,7 +86,7 @@ clustering_img = np.zeros(create_img_size,dtype=np.uint8);
 #--------------------------------------
 #描画動画の生成
 #--------------------------------------
-videomaker = cv2.VideoWriter('maker.avi',cv2.cv.CV_FOURCC('M','J','P','G'), 10.0, (create_img_side * (IMG_SIZE / Separate),create_img_side * (IMG_SIZE / Separate)));
+videomaker = cv2.VideoWriter('clustering.avi',cv2.cv.CV_FOURCC('M','J','P','G'), 10.0, (create_img_side * (IMG_SIZE / Separate),create_img_side * (IMG_SIZE / Separate)));
 #--------------------------------------
 
 #-----------------------------------------------------------------
@@ -200,7 +200,7 @@ for var in range(0,6):
             grid_counter_tmp.append(str(map_point));
         #--------------------------------------------------------
 
-        #グリッドごとの高さ（上下）の相関を見るためのリスト
+        #グリッドごとの高さ（上下）の相関を見るためのヒストグラム
         #--------------------------------------------------------
         #if(int(float(data[DATA_TABLE['Wc_Z']]) / 100) not in grid_tall[str(map_point)]):
         #    grid_tall[str(map_point)].update({int(float(data[DATA_TABLE['Wc_Z']]) / 100) : 0})
@@ -213,7 +213,6 @@ for var in range(0,6):
         #--------------------------------------------------------
         center = (int(float(data[DATA_TABLE['Wc_X']]) / Separate * create_img_side),int(float(data[DATA_TABLE['Wc_Y']]) / Separate * create_img_side));
         cv2.circle(traffic_line_img,center,1,(255,0,0));
-        #cv2.imshow("Traffic Lines",traffic_line_img);
         #traffic_line_video.write(traffic_line_img);
         #--------------------------------------------------------
 
@@ -235,17 +234,16 @@ for var in range(0,6):
 
 #消失点グリッドを表示する
 #-----------------------------------------------------------------
-print '-vanishment_point-';
-#print vanishment_point;
-vanishment_mean = np.mean(vanishment_point.values());
-#print (np.median(vanishment_point.values()),np.mean(vanishment_point.values()),np.average(vanishment_point.values()));
-for data in sorted(vanishment_point):
-    place = (create_img_side * int(int(data) % (IMG_SIZE/Separate)),create_img_side * int(int(data) / (IMG_SIZE/Separate)));
-    place2 = (create_img_side * int(int(data) % (IMG_SIZE/Separate))+create_img_side,create_img_side * int(int(data) / (IMG_SIZE/Separate))+create_img_side);
-    color = (20,30,150);
-#    if(vanishment_point[data] > vanishment_mean):
-    #    print (data,vanishment_point[data]);
-#        cv2.rectangle(traffic_line_img,place,place2,color,cv2.cv.CV_FILLED);
+def draw_vanishment_point(target_img):
+    print '-vanishment_point-';
+    vanishment_mean = np.mean(vanishment_point.values());
+    for data in sorted(vanishment_point):
+        place = (create_img_side * int(int(data) % (IMG_SIZE/Separate)),create_img_side * int(int(data) / (IMG_SIZE/Separate)));
+        place2 = (create_img_side * int(int(data) % (IMG_SIZE/Separate))+create_img_side,create_img_side * int(int(data) / (IMG_SIZE/Separate))+create_img_side);
+        color = (100,30,150);
+        if(vanishment_point[data] > vanishment_mean):
+            cv2.rectangle(target_img,place,place2,color,cv2.cv.CV_FILLED);
+    return target_img;
 #-----------------------------------------------------------------
 '''
 #グリッドカウンターの結果を表示する
@@ -277,31 +275,24 @@ for data in sorted(grid_tall):
 '''
 #Draw grid_lines and grid_numbers
 #-----------------------------------------------------------------
-print '-Draw Grid Numbers-';
-for i in range(0,(IMG_SIZE/Separate)):
-    #col
-    cv2.line(traffic_line_img,(create_img_side*i,0),(create_img_side*i,create_img_side*(IMG_SIZE/Separate)),(255,255,0),1);
-    #row
-    cv2.line(traffic_line_img,(0,create_img_side*i),(create_img_side*(IMG_SIZE/Separate),create_img_side*i),(255,255,0),1);
-    #col
-    cv2.line(clustering_img,(create_img_side*i,0),(create_img_side*i,create_img_side*(IMG_SIZE/Separate)),(255,255,0),1);
-    #row
-    cv2.line(clustering_img,(0,create_img_side*i),(create_img_side*(IMG_SIZE/Separate),create_img_side*i),(255,255,0),1);
-    #col
-    cv2.line(grid_tall_img,(create_img_side*i,0),(create_img_side*i,create_img_side*(IMG_SIZE/Separate)),(255,255,0),1);
-    #row
-    cv2.line(grid_tall_img,(0,create_img_side*i),(create_img_side*(IMG_SIZE/Separate),create_img_side*i),(255,255,0),1);
-
-
-    for j in range(0,(IMG_SIZE/Separate)):
-        draw_point = (i*create_img_side,j*create_img_side+10);
-        grid_number = str(i+j*(IMG_SIZE/Separate));
-        cv2.putText(grid_count_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
-        cv2.putText(grid_tall_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
-        cv2.putText(timespan_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
-        cv2.putText(traffic_line_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
-        cv2.putText(clustering_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
+def draw_grid_lines_and_numbers(target_img):
+    print '-Draw Grid Lines and Numbers-';
+    for i in range(0,(IMG_SIZE/Separate)):
+        #col
+        cv2.line(target_img,(create_img_side*i,0),(create_img_side*i,create_img_side*(IMG_SIZE/Separate)),(255,255,0),1);
+        #row
+        cv2.line(target_img,(0,create_img_side*i),(create_img_side*(IMG_SIZE/Separate),create_img_side*i),(255,255,0),1);
+        for j in range(0,(IMG_SIZE/Separate)):
+            draw_point = (i*create_img_side,j*create_img_side+10);
+            grid_number = str(i+j*(IMG_SIZE/Separate));
+            cv2.putText(target_img,grid_number,draw_point,cv2.FONT_HERSHEY_PLAIN,0.5,(255,190,0));
+    return target_img;
 #-----------------------------------------------------------------
+traffic_line_img = draw_grid_lines_and_numbers(traffic_line_img);
+clustering_img = draw_grid_lines_and_numbers(clustering_img);
+timespan_img = draw_grid_lines_and_numbers(timespan_img);
+grid_tall_img = draw_grid_lines_and_numbers(grid_tall_img);
+grid_count_img = draw_grid_lines_and_numbers(grid_count_img);
 
 
 
@@ -331,27 +322,27 @@ def calc_grid_tall_correlation(base,target):
     return np.corrcoef(grid_tall[base].values(), grid_tall[target].values())[0,1];
 #-----------------------------------------------------------------
 
-
-ave = [];
-for data in sorted(grid_tall):
-    dist = {};
-    for v in [-12,0,12]:
-        for h in [-1,0,1]:
-            if(v==0 and h ==0):
-                continue;
-            comp_point = int(data) + v + h;
-            if(str(comp_point) in grid_tall):
-            #    output.writerow([calc_grid_tall_correlation(data,str(comp_point))]);
-                if(calc_grid_tall_correlation(data,str(comp_point)) >= 0.529291293):
-                    point = (create_img_side * int(int(data) % (IMG_SIZE/Separate))+create_img_side/2,create_img_side * int(int(data) / (IMG_SIZE/Separate))+create_img_side/2);
-                    point2 = (create_img_side * int(int(comp_point) % (IMG_SIZE/Separate))+create_img_side/2,create_img_side * int(int(comp_point) / (IMG_SIZE/Separate))+create_img_side/2);
-                    cv2.line(clustering_img,point,point2,(0,0,255),2);
-                    videomaker.write(clustering_img);
-            #    dist.update({comp_point:calc_grid_tall_correlation(data,str(comp_point))});
-    #target = min(dist.items(), key=lambda x:x[1])[0];
-
-#print np.average(ave),np.median(ave);
+#8近傍クラスタリング関数
 #-----------------------------------------------------------------
+def start_clustering():
+    for data in sorted(grid_tall):
+        for v in [-12,0,12]:
+            for h in [-1,0,1]:
+                if(v==0 and h ==0):
+                    continue;
+                comp_point = int(data) + v + h;
+                if(str(comp_point) in grid_tall):
+                #    output.writerow([calc_grid_tall_correlation(data,str(comp_point))]);
+                    if(calc_grid_tall_correlation(data,str(comp_point)) >= 0.529291293):
+                        point = (create_img_side * int(int(data) % (IMG_SIZE/Separate))+create_img_side/2,create_img_side * int(int(data) / (IMG_SIZE/Separate))+create_img_side/2);
+                        point2 = (create_img_side * int(int(comp_point) % (IMG_SIZE/Separate))+create_img_side/2,create_img_side * int(int(comp_point) / (IMG_SIZE/Separate))+create_img_side/2);
+                        cv2.line(clustering_img,point,point2,(0,0,255),2);
+                        videomaker.write(clustering_img);
+#-----------------------------------------------------------------
+
+start_clustering();
+#clustering_img = draw_vanishment_point(clustering_img);
+
 
 #show and save created imgs
 #-----------------------------------------------------------------
